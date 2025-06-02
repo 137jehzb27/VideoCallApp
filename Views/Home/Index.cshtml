@@ -1,0 +1,46 @@
+﻿
+@{
+    ViewData["Title"] = "Video Call";
+}
+<h2>Video Call</h2>
+<video id="localVideo" autoplay muted style="width: 45%; border: 1px solid black;"></video>
+<video id="remoteVideo" autoplay style="width: 45%; border: 1px solid black;"></video>
+<br/>
+<button onclick="startCall()">Start Call</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    const connection = new signalR.HubConnectionBuilder().withUrl("/videoHub").build();
+    let localStream, peerConnection;
+
+    async function startCall() {
+        alert("✅ تم الضغط على الزر Start Call");
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("❌ جهازك لا يدعم الكاميرا عبر المتصفح.");
+            return;
+        }
+
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById("localVideo").srcObject = localStream;
+
+            peerConnection = new RTCPeerConnection();
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.ontrack = event => {
+                document.getElementById("remoteVideo").srcObject = event.streams[0];
+            };
+
+            peerConnection.onicecandidate = event => {
+                if (event.candidate) {
+                    connection.invoke("SendSignal", "user", JSON.stringify({ candidate: event.candidate }));
+                }
+            };
+
+            await connection.start();
+        } catch (err) {
+            alert("🚫 فشل الحصول على الكاميرا أو المايك: " + err.message);
+        }
+    }
+</script>

@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "VideoCallApp": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:58914;http://192.168.1.93:58914",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
